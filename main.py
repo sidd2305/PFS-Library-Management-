@@ -17,7 +17,7 @@ except FileNotFoundError:
 
 # Sidebar Navigation
 st.sidebar.title("Library Management System")
-page = st.sidebar.selectbox("Choose a page", ["Home", "Add Book", "Delete Book","View/Edit Books", "Issue/Return Book", "Report Defaulters"])
+page = st.sidebar.selectbox("Choose a page", ["Home", "Add Book", "Delete Book","View/Edit Books", "Issue/Return Book", "Current Issuers","Defaulters List"])
 
 # Home Page
 if page == "Home":
@@ -141,9 +141,23 @@ elif page == "Issue/Return Book":
             st.info("No matching books found.")
     else:
         st.error("The 'Book Name' or 'Status' column is not found in issue_df.")
+elif page == "Current Issuers":
+    st.title("Current Issuers")
+
+    # Check if the necessary columns exist
+    if 'Book Name' in issue_df.columns and 'Status' in issue_df.columns:
+        current_issuers_df = issue_df[issue_df['Status'] == 'Issued']
+
+        if not current_issuers_df.empty:
+            st.write("The following books are currently issued:")
+            st.write(current_issuers_df[['Book Name', 'Borrower Name', 'Issued On', 'Flat Number']])
+        else:
+            st.write("No books are currently issued.")
+    else:
+        st.error("The 'Book Name' or 'Status' column is not found in issue_df.")
 
 # Report Defaulters Page
-elif page == "Report Defaulters":
+elif page == "Defaulters List":
     st.title("Defaulter List")
     current_date = datetime.date.today()
 
