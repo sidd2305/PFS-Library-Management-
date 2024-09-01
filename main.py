@@ -53,7 +53,7 @@ elif page == "Add Book":
 
     if st.button("Add Book"):
         new_book = {'Book Name': book_name, 'Book ID': book_id, 'Shelf ID': shelf_id}
-        books_df = books_df.append(new_book, ignore_index=True)
+        books_df = pd.concat([books_df, new_book], ignore_index=True)
         books_df.to_csv('books.csv', index=False)
         st.success("Book added successfully!")
 
@@ -113,7 +113,7 @@ elif page == "Issue/Return Book":
                     'Borrower Name': borrower_name,
                     'Flat Number': flat_number
                 }
-                issue_df = issue_df.append(new_issue, ignore_index=True)
+                issue_df = issue_df.concat(new_issue, ignore_index=True)
                 issue_df.to_csv('issue.csv', index=False)
                 st.success("Book issued successfully!")
         else:
