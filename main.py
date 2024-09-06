@@ -17,13 +17,14 @@ except FileNotFoundError:
 
 # Sidebar Navigation
 st.sidebar.title("Library Management System")
-page = st.sidebar.selectbox("Choose a page", ["Home", "Add Book", "Delete Book","View/Edit Books", "Issue/Return Book", "Current Issuers","Defaulters List"])
+page = st.sidebar.selectbox("Choose a page", ["Home", "Add Book", "Delete Book", "View Books", "Edit Books", "Issue/Return Book", "Current Issuers", "Defaulters List"])
 
 # Home Page
 if page == "Home":
     st.title("Welcome to the Library Management System")
     st.write("Welcome to the PFS Library Management System, a platform maintained and managed by the residents of Purva Fountain Square. Our library offers a diverse collection of books across all categories, ensuring there's something for everyone. This system is designed to streamline the management and usage of our community library, and all residents are welcome to explore and contribute.")
 
+# Delete Book Page
 elif page == "Delete Book":
     st.title("Delete a Book")
 
@@ -50,37 +51,73 @@ elif page == "Add Book":
     book_name = st.text_input("Book Name")
     book_id = st.text_input("Book ID")
     shelf_id = st.text_input("Shelf ID")
+    author = st.text_input("Author")
+    
+    category = st.selectbox("Category", [
+        "Adult Fiction", 
+        "Children's Fiction", 
+        "Adult Non Fiction", 
+        "General Knowledge", 
+        "Philosophy", 
+        "Other Languages", 
+        "Self Help"
+    ])
 
     if st.button("Add Book"):
-        new_book = pd.DataFrame({'Book Name': [book_name], 'Book ID': [book_id], 'Shelf ID': [shelf_id]})
+        new_book = pd.DataFrame({
+            'Book Name': [book_name], 
+            'Book ID': [book_id], 
+            'Shelf ID': [shelf_id], 
+            'Author': [author], 
+            'Category': [category]
+        })
         books_df = pd.concat([books_df, new_book], ignore_index=True)
         books_df.to_csv('books.csv', index=False)
         st.success("Book added successfully!")
 
-# View/Edit Books Page
-elif page == "View/Edit Books":
-    st.title("View or Edit Books")
+# View Books Page (new)
+elif page == "View Books":
+    st.title("View Books")
     
-    # Add download options
-    st.download_button(label="Download Database of Book Details",data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
-    st.download_button(label="Download Database of Book Issuer Details", data=issue_df.to_csv(index=False), file_name="issue.csv", mime='text/csv')
+    search_query = st.text_input("Search for a book by name", "").strip()
     
-    # Check if 'Book Name' column exists
-    if 'Book Name' in books_df.columns:
+    if search_query:
+        search_results = books_df[books_df['Book Name'].str.contains(search_query, case=False, na=False)]
+        st.write(search_results)
+    else:
         st.write(books_df)
 
-        book_to_edit = st.text_input("Search for a book", "").strip()
+    # Add download options
+    st.download_button(label="Download Book Database", data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
+
+# Edit Books Page (separate from View Books)
+elif page == "Edit Books":
+    st.title("Edit Books")
+
+    # Check if 'Book Name' column exists
+    if 'Book Name' in books_df.columns:
+        book_to_edit = st.text_input("Search for a book to edit", "").strip()
         search_results = books_df[books_df['Book Name'].str.contains(book_to_edit, case=False, na=False)]
         
         if not search_results.empty:
             book_to_edit = st.selectbox("Select a book to edit", search_results['Book Name'].unique())
             book_data = books_df[books_df['Book Name'] == book_to_edit]
+            
             new_book_name = st.text_input("Book Name", book_data['Book Name'].values[0])
             new_shelf_id = st.text_input("Shelf ID", book_data['Shelf ID'].values[0])
+            new_author = st.text_input("Author", book_data['Author'].values[0])
+            new_category = st.selectbox("Category", [
+                "Adult Fiction", 
+                "Children's Fiction", 
+                "Adult Non Fiction", 
+                "General Knowledge", 
+                "Philosophy", 
+                "Other Languages", 
+                "Self Help"
+            ], index=["Adult Fiction", "Children's Fiction", "Adult Non Fiction", "General Knowledge", "Philosophy", "Other Languages", "Self Help"].index(book_data['Category'].values[0]))
 
             if st.button("Edit Book"):
-                books_df.loc[books_df['Book Name'] == book_to_edit, 'Book Name'] = new_book_name
-                books_df.loc[books_df['Book Name'] == book_to_edit, 'Shelf ID'] = new_shelf_id
+                books_df.loc[books_df['Book Name'] == book_to_edit, ['Book Name', 'Shelf ID', 'Author', 'Category']] = [new_book_name, new_shelf_id, new_author, new_category]
                 books_df.to_csv('books.csv', index=False)
                 st.success("Book information updated!")
         else:
@@ -141,10 +178,11 @@ elif page == "Issue/Return Book":
             st.info("No matching books found.")
     else:
         st.error("The 'Book Name' or 'Status' column is not found in issue_df.")
+
+# Current Issuers Page
 elif page == "Current Issuers":
     st.title("Current Issuers")
 
-    # Check if the necessary columns exist
     if 'Book Name' in issue_df.columns and 'Status' in issue_df.columns:
         current_issuers_df = issue_df[issue_df['Status'] == 'Issued']
 
