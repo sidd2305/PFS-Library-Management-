@@ -23,7 +23,7 @@ page = st.sidebar.selectbox("Choose a page", ["Home", "Add Book", "Delete Book",
 if page == "Home":
     st.title("Welcome to the Library Management System")
     st.write("Welcome to the PFS Library Management System, a platform maintained and managed by the residents of Purva Fountain Square. Our library offers a diverse collection of books across all categories, ensuring there's something for everyone. This system is designed to streamline the management and usage of our community library, and all residents are welcome to explore and contribute.")
-
+    st.image("pfs.jpeg", caption="Purva Fountain Square Library", use_column_width=True)
 # Delete Book Page
 elif page == "Delete Book":
     st.title("Delete a Book")
