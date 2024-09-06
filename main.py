@@ -5,7 +5,7 @@ import datetime
 # Load the data with error handling
 try:
     books_df = pd.read_csv('books.csv', encoding='ISO-8859-1')  # or try encoding='latin1'
-    issue_df = pd.read_csv('issue.csv', encoding='ISO-8859-1'
+    issue_df = pd.read_csv('issue.csv', encoding='ISO-8859-1')
     
     # Clean column names by stripping any leading/trailing spaces
     books_df.columns = books_df.columns.str.strip()
