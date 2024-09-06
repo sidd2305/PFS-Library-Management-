@@ -126,13 +126,20 @@ elif page == "Edit Books":
         st.error("The 'Book Name' column is not found in books_df.")
 
 # Issue/Return Book Page
+# Issue/Return Book Page
 elif page == "Issue/Return Book":
     st.title("Issue or Return a Book")
     
     # Issue a book
     st.subheader("Issue a Book")
+    
+    # Ensure the 'Book Name' column is of string type
+    books_df['Book Name'] = books_df['Book Name'].astype(str)
+    
     if 'Book Name' in books_df.columns:
         book_to_issue = st.text_input("Search for a book to issue", "").strip()
+        
+        # Avoid AttributeError by ensuring string type before applying .str.contains
         issue_search_results = books_df[books_df['Book Name'].str.contains(book_to_issue, case=False, na=False)]
         
         if not issue_search_results.empty:
@@ -160,8 +167,15 @@ elif page == "Issue/Return Book":
 
     # Return a book
     st.subheader("Return a Book")
+    
+    # Ensure the 'Book Name' and 'Status' columns are string type
+    issue_df['Book Name'] = issue_df['Book Name'].astype(str)
+    issue_df['Status'] = issue_df['Status'].astype(str)
+    
     if 'Book Name' in issue_df.columns and 'Status' in issue_df.columns:
         book_to_return = st.text_input("Search for a book to return", "").strip()
+        
+        # Avoid AttributeError by ensuring string type before applying .str.contains
         return_search_results = issue_df[(issue_df['Status'] == 'Issued') & 
                                          (issue_df['Book Name'].str.contains(book_to_return, case=False, na=False))]
         
