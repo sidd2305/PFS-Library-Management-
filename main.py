@@ -129,23 +129,29 @@ if check_password():
                 new_book_name = st.text_input("Title of the Book", book_data['Title of the Book'].values[0])
                 new_shelf_id = st.text_input("Shelf No", book_data['Shelf No'].values[0])
                 new_author = st.text_input("Author", book_data['Author'].values[0])
-                new_category = st.selectbox("Category", [
+                
+                # Define the correct list of categories
+                valid_categories = [
                     "Adult Fiction", 
                     "Children's Fiction", 
                     "Adult Non Fiction", 
                     "General Knowledge", 
                     "Philosophy, Self Help, Motivation", 
                     "Other Languages"
-                ], index=[
-                    "Adult Fiction", 
-                    "Children's Fiction", 
-                    "Adult Non Fiction", 
-                    "General Knowledge", 
-                    "Philosophy, Self Help, Motivation", 
-                    "Other Languages"
-                ].index(book_data['Category'].values[0]))
+                ]
+                
+                # Get the current category from the book_data
+                current_category = book_data['Category'].values[0]
+                
+                # Ensure the current category matches the dropdown options, or use a fallback
+                if current_category not in valid_categories:
+                    st.warning(f"Category '{current_category}' not found in predefined list. Defaulting to 'Adult Fiction'.")
+                    current_category = "Adult Fiction"
+                
+                new_category = st.selectbox("Category", valid_categories, index=valid_categories.index(current_category))
 
                 if st.button("Edit Book"):
+                    # Update the book information
                     books_df.loc[books_df['Title of the Book'] == book_to_edit, ['Title of the Book', 'Shelf No', 'Author', 'Category']] = [new_book_name, new_shelf_id, new_author, new_category]
                     books_df.to_csv('books.csv', index=False)
                     st.success("Book information updated!")
@@ -153,6 +159,7 @@ if check_password():
                 st.info("No matching books found.")
         else:
             st.error("The 'Title of the Book' column is not found in books_df.")
+
 
     # Issue/Return Book Page
     elif page == "Issue/Return Book":
