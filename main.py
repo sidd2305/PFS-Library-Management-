@@ -148,8 +148,19 @@ if check_password():
                         "Other Languages"
                     ]
     
-                    # Get the current category
+                    # Standardize and clean the current category
                     current_category = book_data['Category'].values[0].strip()
+    
+                    # Mapping of common category variations to valid ones
+                    category_mapping = {
+                        'Adult-Fiction': 'Adult Fiction',
+                        'Children-Fiction': "Children's Fiction",
+                        'Non-Fiction': 'Adult Non Fiction',
+                        # Add more mappings as needed
+                    }
+    
+                    # Apply the mapping to correct the category if needed
+                    current_category = category_mapping.get(current_category, current_category)
     
                     # Handle case where current category might not exist in the valid list
                     if current_category not in valid_categories:
@@ -175,6 +186,7 @@ if check_password():
                 st.write("Please enter a search query to find a book to edit.")
         else:
             st.error("The 'Title of the Book' column is not found in the books_df.")
+
 
 
 
