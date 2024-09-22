@@ -152,20 +152,20 @@ if check_password():
                     current_category = book_data['Category'].values[0].strip()
     
                     # Mapping of common category variations to valid ones
-                    category_mapping = {
-                        'Adult-Fiction': 'Adult Fiction',
-                        'Children-Fiction': "Children's Fiction",
-                        'Non-Fiction': 'Adult Non Fiction',
-                        # Add more mappings as needed
-                    }
+                    # category_mapping = {
+                    #     'Adult-Fiction': 'Adult Fiction',
+                    #     'Children-Fiction': "Children's Fiction",
+                    #     'Non-Fiction': 'Adult Non Fiction',
+                    #     # Add more mappings as needed
+                    # }
     
-                    # Apply the mapping to correct the category if needed
-                    current_category = category_mapping.get(current_category, current_category)
+                    # # Apply the mapping to correct the category if needed
+                    # current_category = category_mapping.get(current_category, current_category)
     
-                    # Handle case where current category might not exist in the valid list
-                    if current_category not in valid_categories:
-                        st.warning(f"Category '{current_category}' not found in predefined list. Defaulting to 'Adult Fiction'.")
-                        current_category = "Adult Fiction"
+                    # # Handle case where current category might not exist in the valid list
+                    # if current_category not in valid_categories:
+                    #     st.warning(f"Default Category to .")
+                    #     current_category = "Adult Fiction"
                     
                     # Prepopulate the category dropdown with the current category
                     new_category = st.selectbox("Category", valid_categories, index=valid_categories.index(current_category))
