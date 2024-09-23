@@ -148,7 +148,12 @@ if check_password():
                 ]
     
                 # Handle category selection
-                new_category = st.selectbox("Category", valid_categories, index=valid_categories.index(book_data['Category'].strip()))
+                current_category = book_data['Category'].strip()
+                if current_category not in valid_categories:
+                    st.warning(f"Current category '{current_category}' is not in the standard list. It will be set to 'Adult Fiction' if not changed.")
+                    current_category = "Adult Fiction"
+    
+                new_category = st.selectbox("Category", valid_categories, index=valid_categories.index(current_category))
     
                 # Button to update the book details
                 if st.button("Update Book"):
