@@ -78,12 +78,12 @@ if check_password():
         author = st.text_input("Author")
         
         category = st.selectbox("Category", [
-            "Adult-Fiction", 
-            "Children`s books", 
-            "Adult-Non Fiction", 
-           
-            "Philosophy,Self Help, Motivation", 
-            "Non-English books"
+            "Adult-Non Fiction",
+                    "Adult-Fiction",
+                    "Children`s books",
+                    
+                    "Philosophy,Self Help, Motivation",
+                    "Non-English books"
         ])
 
         if st.button("Add Book"):
