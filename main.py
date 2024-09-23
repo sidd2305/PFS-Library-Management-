@@ -81,9 +81,9 @@ if check_password():
             "Adult-Fiction", 
             "Children`s books", 
             "Adult-Non Fiction", 
-            "General Knowledge", 
+           
             "Philosophy, Self Help, Motivation", 
-            "Other Languages"
+            "Non-English books"
         ])
 
         if st.button("Add Book"):
@@ -139,12 +139,12 @@ if check_password():
     
                 # Define valid categories
                 valid_categories = [
-                    "Adult-Fiction",
+                    "Non-English books",
                     "Children`s books",
                     "Adult-Non Fiction",
-                    "General Knowledge",
+                   
                     "Philosophy, Self Help, Motivation",
-                    "Other Languages"
+                    "Non-English books"
                 ]
     
                 # Handle category selection
