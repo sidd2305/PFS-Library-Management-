@@ -114,7 +114,7 @@ if check_password():
         st.download_button(label="Download Book Database", data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
 
     # Edit Books Page (separate from View Books)
-    elif page == "Edit Books":
+  elif page == "Edit Books":
         st.title("Edit Books")
     
         # Search functionality
@@ -142,25 +142,22 @@ if check_password():
                     "Adult-Non Fiction",
                     "Adult-Fiction",
                     "Children`s books",
-                    
                     "Philosophy,Self Help, Motivation",
                     "Non-English books"
                 ]
     
                 # Handle category selection
                 current_category = book_data['Category'].strip()
-                # if current_category not in valid_categories:
-                #     st.warning(f"Current category '{current_category}' is not in the standard list. It will be set to 'Adult Fiction' if not changed.")
-                #     current_category = "Adult Fiction"
-    
                 new_category = st.selectbox("Category", valid_categories, index=valid_categories.index(current_category))
     
                 # Button to update the book details
                 if st.button("Update Book"):
-                    # Update the DataFrame with new values
-                    books_df.loc[books_df['Title of the Book'] == book_to_edit] = [
-                        new_book_name, new_book_no, new_shelf_id, new_author, new_category
-                    ]
+                    # Update each column individually to avoid overwriting the entire row
+                    books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Title of the Book'] = new_book_name
+                    books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Book No'] = new_book_no
+                    books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Shelf No'] = new_shelf_id
+                    books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Author'] = new_author
+                    books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Category'] = new_category
     
                     # Save the updated DataFrame to CSV
                     books_df.to_csv('books.csv', index=False)
@@ -169,8 +166,10 @@ if check_password():
                 st.info("No matching books found.")
         else:
             st.write("Please enter a search query to find a book to edit.")
+    
         # Add download options
         st.download_button(label="Download Book Database", data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
+
 
 
 
