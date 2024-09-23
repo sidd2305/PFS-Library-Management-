@@ -114,7 +114,7 @@ if check_password():
         st.download_button(label="Download Book Database", data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
 
     # Edit Books Page (separate from View Books)
-     elif page == "Edit Books":
+    elif page == "Edit Books":
         st.title("Edit Books")
     
         # Search functionality
