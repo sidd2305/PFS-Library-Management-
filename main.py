@@ -82,7 +82,7 @@ if check_password():
             "Children`s books", 
             "Adult-Non Fiction", 
            
-            "Philosophy, Self Help, Motivation", 
+            "Philosophy,Self Help, Motivation", 
             "Non-English books"
         ])
 
@@ -143,7 +143,7 @@ if check_password():
                     "Adult-Fiction",
                     "Children`s books",
                     
-                    "Philosophy, Self Help, Motivation",
+                    "Philosophy,Self Help, Motivation",
                     "Non-English books"
                 ]
     
