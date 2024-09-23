@@ -139,10 +139,10 @@ if check_password():
     
                 # Define valid categories
                 valid_categories = [
-                    "Non-English books",
-                    "Children`s books",
                     "Adult-Non Fiction",
-                   
+                    "Adult-Fiction",
+                    "Children`s books",
+                    
                     "Philosophy, Self Help, Motivation",
                     "Non-English books"
                 ]
