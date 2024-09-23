@@ -119,49 +119,44 @@ if check_password():
     
         # Search functionality
         search_query = st.text_input("Search for a book by title", "").strip()
-        
+    
         if search_query:
             search_results = books_df[books_df['Title of the Book'].str.contains(search_query, case=False, na=False)]
             if not search_results.empty:
                 st.write(search_results)
-                
+    
                 # Let the user select a book from the search results
                 book_to_edit = st.selectbox("Select a book to edit", search_results['Title of the Book'].unique())
-                
+    
                 # Get the book data to edit
                 book_data = books_df[books_df['Title of the Book'] == book_to_edit].iloc[0]
-                
+    
                 # Display the current details in editable fields
                 new_book_name = st.text_input("Title of the Book", book_data['Title of the Book'])
                 new_book_no = st.text_input("Book No", book_data['Book No'])
                 new_shelf_id = st.text_input("Shelf No", book_data['Shelf No'])
                 new_author = st.text_input("Author", book_data['Author'])
-                
+    
                 # Define valid categories
                 valid_categories = [
-                    "Adult Fiction", 
-                    "Children's Fiction", 
-                    "Adult Non Fiction", 
-                    "General Knowledge", 
-                    "Philosophy, Self Help, Motivation", 
+                    "Adult Fiction",
+                    "Children's Fiction",
+                    "Adult Non Fiction",
+                    "General Knowledge",
+                    "Philosophy, Self Help, Motivation",
                     "Other Languages"
                 ]
-                
+    
                 # Handle category selection
-                current_category = book_data['Category'].strip()
-                if current_category not in valid_categories:
-                    st.warning(f"Current category '{current_category}' is not in the standard list. It will be set to 'Adult Fiction' if not changed.")
-                    current_category = "Adult Fiction"
-                
-                new_category = st.selectbox("Category", valid_categories, index=valid_categories.index(current_category))
-                
+                new_category = st.selectbox("Category", valid_categories, index=valid_categories.index(book_data['Category'].strip()))
+    
                 # Button to update the book details
                 if st.button("Update Book"):
                     # Update the DataFrame with new values
                     books_df.loc[books_df['Title of the Book'] == book_to_edit] = [
                         new_book_name, new_book_no, new_shelf_id, new_author, new_category
                     ]
-                    
+    
                     # Save the updated DataFrame to CSV
                     books_df.to_csv('books.csv', index=False)
                     st.success(f"Book '{new_book_name}' updated successfully!")
@@ -169,7 +164,6 @@ if check_password():
                 st.info("No matching books found.")
         else:
             st.write("Please enter a search query to find a book to edit.")
-    
         # Add download options
         st.download_button(label="Download Book Database", data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
 
