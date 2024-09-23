@@ -79,7 +79,7 @@ if check_password():
         
         category = st.selectbox("Category", [
             "Adult-Fiction", 
-            "Children's Fiction", 
+            "Children's books", 
             "Adult-Non Fiction", 
             "General Knowledge", 
             "Philosophy, Self Help, Motivation", 
@@ -140,7 +140,7 @@ if check_password():
                 # Define valid categories
                 valid_categories = [
                     "Adult-Fiction",
-                    "Children's Fiction",
+                    "Children's books",
                     "Adult-Non Fiction",
                     "General Knowledge",
                     "Philosophy, Self Help, Motivation",
