@@ -114,62 +114,61 @@ if check_password():
         st.download_button(label="Download Book Database", data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
 
     # Edit Books Page (separate from View Books)
-  elif page == "Edit Books":
-      
-    st.title("Edit Books")
-
-    # Search functionality
-    search_query = st.text_input("Search for a book by title", "").strip()
-
-    if search_query:
-        search_results = books_df[books_df['Title of the Book'].str.contains(search_query, case=False, na=False)]
-        if not search_results.empty:
-            st.write(search_results)
-
-            # Let the user select a book from the search results
-            book_to_edit = st.selectbox("Select a book to edit", search_results['Title of the Book'].unique())
-
-            # Get the book data to edit
-            book_data = books_df[books_df['Title of the Book'] == book_to_edit].iloc[0]
-
-            # Display the current details in editable fields
-            new_book_name = st.text_input("Title of the Book", book_data['Title of the Book'])
-            new_book_no = st.text_input("Book No", book_data['Book No'])
-            new_shelf_id = st.text_input("Shelf No", book_data['Shelf No'])
-            new_author = st.text_input("Author", book_data['Author'])
-
-            # Define valid categories
-            valid_categories = [
-                "Adult-Non Fiction",
-                "Adult-Fiction",
-                "Children`s books",
-                "Philosophy,Self Help, Motivation",
-                "Non-English books"
-            ]
-
-            # Handle category selection
-            current_category = book_data['Category'].strip()
-            new_category = st.selectbox("Category", valid_categories, index=valid_categories.index(current_category))
-
-            # Button to update the book details
-            if st.button("Update Book"):
-                # Update each column individually to avoid overwriting the entire row
-                books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Title of the Book'] = new_book_name
-                books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Book No'] = new_book_no
-                books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Shelf No'] = new_shelf_id
-                books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Author'] = new_author
-                books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Category'] = new_category
-
-                # Save the updated DataFrame to CSV
-                books_df.to_csv('books.csv', index=False)
-                st.success(f"Book '{new_book_name}' updated successfully!")
+     elif page == "Edit Books":
+        st.title("Edit Books")
+    
+        # Search functionality
+        search_query = st.text_input("Search for a book by title", "").strip()
+    
+        if search_query:
+            search_results = books_df[books_df['Title of the Book'].str.contains(search_query, case=False, na=False)]
+            if not search_results.empty:
+                st.write(search_results)
+    
+                # Let the user select a book from the search results
+                book_to_edit = st.selectbox("Select a book to edit", search_results['Title of the Book'].unique())
+    
+                # Get the book data to edit
+                book_data = books_df[books_df['Title of the Book'] == book_to_edit].iloc[0]
+    
+                # Display the current details in editable fields
+                new_book_name = st.text_input("Title of the Book", book_data['Title of the Book'])
+                new_book_no = st.text_input("Book No", book_data['Book No'])
+                new_shelf_id = st.text_input("Shelf No", book_data['Shelf No'])
+                new_author = st.text_input("Author", book_data['Author'])
+    
+                # Define valid categories
+                valid_categories = [
+                    "Adult-Non Fiction",
+                    "Adult-Fiction",
+                    "Children`s books",
+                    "Philosophy,Self Help, Motivation",
+                    "Non-English books"
+                ]
+    
+                # Handle category selection
+                current_category = book_data['Category'].strip()
+                new_category = st.selectbox("Category", valid_categories, index=valid_categories.index(current_category))
+    
+                # Button to update the book details
+                if st.button("Update Book"):
+                    # Update each column individually to avoid overwriting the entire row
+                    books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Title of the Book'] = new_book_name
+                    books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Book No'] = new_book_no
+                    books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Shelf No'] = new_shelf_id
+                    books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Author'] = new_author
+                    books_df.loc[books_df['Title of the Book'] == book_to_edit, 'Category'] = new_category
+    
+                    # Save the updated DataFrame to CSV
+                    books_df.to_csv('books.csv', index=False)
+                    st.success(f"Book '{new_book_name}' updated successfully!")
+            else:
+                st.info("No matching books found.")
         else:
-            st.info("No matching books found.")
-    else:
-        st.write("Please enter a search query to find a book to edit.")
-
-    # Add download options
-    st.download_button(label="Download Book Database", data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
+            st.write("Please enter a search query to find a book to edit.")
+    
+        # Add download options
+        st.download_button(label="Download Book Database", data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
 
 
 
