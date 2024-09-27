@@ -199,22 +199,24 @@ if check_password():
             st.info("No matching books found.")
     
         # Return a book
+       # Return a book
         st.subheader("Return a Book")
         book_to_return = st.text_input("Search for a book to return (by Book No)", "").strip()
         return_search_results = issue_df[issue_df['Book No'].str.contains(book_to_return, case=False, na=False)]
-    
+        
         if not return_search_results.empty:
             book_to_return = st.selectbox("Select a book to return", return_search_results['Book No'].unique())
             book_title = issue_df.loc[issue_df['Book No'] == book_to_return, 'Title of the Book'].values[0]  # Retrieve the book title
             st.write(f"Title of the Book: {book_title}")  # Display the corresponding book title
+        
             if st.button("Return Book"):
-                issue_df.loc[issue_df['Book No'] == book_to_return, 'Status'] = 'Returned'
-                issue_df.loc[issue_df['Book No'] == book_to_return, 'Returned On'] = datetime.date.today()
-                issue_df.to_csv('issue.csv', index=False)
+                # Remove the entry from issue_df
+                issue_df = issue_df[issue_df['Book No'] != book_to_return]  # Filter out the returned book
+                issue_df.to_csv('issue.csv', index=False)  # Save the updated issue_df to CSV
                 st.success(f"Book '{book_title}' (No: {book_to_return}) returned successfully!")
         else:
             st.info("No matching issued books found.")
-
+        
 
 
     # Current Issuers Page
