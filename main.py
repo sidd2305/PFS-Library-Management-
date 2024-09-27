@@ -75,7 +75,7 @@ if check_password():
 
         if st.button("Add Book"):
             if books_df['Book No'].str.lower().eq(book_id.lower()).any():
-                st.error("A book with this Book No already exists. Please use a different Book No.")
+                st.error("A book with this Book No already exists. Please use a different Book No.इस पुस्तक संख्या के साथ पहले से ही एक पुस्तक मौजूद है। कृपया एक अलग पुस्तक संख्या का उपयोग करें।")
             else:
                 new_book = pd.DataFrame({
                     'Title of the Book': [book_name], 
@@ -93,7 +93,8 @@ if check_password():
         st.title("Delete a Book")
         book_to_delete = st.text_input("Search for a book to delete (by Book No)", "").strip()
         delete_search_results = books_df[books_df['Book No'].str.contains(book_to_delete, case=False, na=False)]
-        
+        st.write(f"Title of the Book: {issue_df.loc[issue_df['Book No'] == book_to_return, 'Title of the Book'].values[0]}")
+
         if not delete_search_results.empty:
             book_to_delete = st.selectbox("Select a book to delete", delete_search_results['Book No'].unique())
             if st.button("Delete Book"):
@@ -164,6 +165,8 @@ if check_password():
     
         # Search for the book in books_df
         issue_search_results = books_df[books_df['Book No'].str.contains(book_to_issue, case=False, na=False)]
+        st.write(f"Title of the Book: {books_df.loc[books_df['Book No'] == book_to_issue, 'Title of the Book'].values[0]}")
+
     
         if not issue_search_results.empty:
             book_to_issue = st.selectbox("Select a book to issue", issue_search_results['Book No'].unique())
@@ -194,7 +197,7 @@ if check_password():
                     issue_df.to_csv('issue.csv', index=False)
                     st.success(f"Book '{book_name}' (No: {book_to_issue}) issued to {borrower_name} successfully!")
                 else:
-                    st.error("This book is already issued and cannot be issued again.")
+                    st.error("यह पुस्तक पहले ही जारी की जा चुकी है और इसे फिर से जारी नहीं किया जा सकता। This book is already issued and cannot be issued again.")
         else:
             st.info("No matching books found.")
     
@@ -208,7 +211,7 @@ if check_password():
             book_to_return = st.selectbox("Select a book to return", return_search_results['Book No'].unique())
             book_title = issue_df.loc[issue_df['Book No'] == book_to_return, 'Title of the Book'].values[0]  # Retrieve the book title
             st.write(f"Title of the Book: {book_title}")  # Display the corresponding book title
-        
+            
             if st.button("Return Book"):
                 # Remove the entry from issue_df
                 issue_df = issue_df[issue_df['Book No'] != book_to_return]  # Filter out the returned book
