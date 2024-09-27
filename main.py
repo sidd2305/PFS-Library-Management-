@@ -151,27 +151,38 @@ if check_password():
         st.download_button(label="Download Book Database", data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
 
     # Issue/Return Book Page
+    # Issue/Return Book Page
     elif page == "Issue/Return Book":
         st.title("Issue or Return a Book")
-        
+    
         # Issue a book
         st.subheader("Issue a Book")
+        
+        # Search for a book by Book No
         book_to_issue = st.text_input("Search for a book to issue (by Book No)", "").strip()
+        
+        # Search for the book in books_df
         issue_search_results = books_df[books_df['Book No'].str.contains(book_to_issue, case=False, na=False)]
+        
         if not issue_search_results.empty:
             book_to_issue = st.selectbox("Select a book to issue", issue_search_results['Book No'].unique())
+            book_name = books_df.loc[books_df['Book No'] == book_to_issue, 'Title of the Book'].values[0]  # Retrieve the book title
+            
             user = st.text_input("Name of Issuer")
             issue_date = st.date_input("Issue Date", datetime.date.today())
+            
             if st.button("Issue Book"):
                 new_issue = pd.DataFrame({
                     'Book No': [book_to_issue],
+                    'Title of the Book': [book_name],  # Include the book title
                     'Name of Issuer': [user],
                     'Issued On': [issue_date],
                     'Due Date': [issue_date + datetime.timedelta(days=14)]
                 })
+                
                 issue_df = pd.concat([issue_df, new_issue], ignore_index=True)
                 issue_df.to_csv('issue.csv', index=False)
-                st.success(f"Book '{book_to_issue}' issued to {user} successfully!")
+                st.success(f"Book '{book_name}' (No: {book_to_issue}) issued to {user} successfully!")
         else:
             st.info("No matching books found.")
         
@@ -179,6 +190,7 @@ if check_password():
         st.subheader("Return a Book")
         book_to_return = st.text_input("Search for a book to return (by Book No)", "").strip()
         return_search_results = issue_df[issue_df['Book No'].str.contains(book_to_return, case=False, na=False)]
+        
         if not return_search_results.empty:
             book_to_return = st.selectbox("Select a book to return", return_search_results['Book No'].unique())
             if st.button("Return Book"):
@@ -187,6 +199,7 @@ if check_password():
                 st.success(f"Book '{book_to_return}' returned successfully!")
         else:
             st.info("No matching issued books found.")
+
 
     # Current Issuers Page
     elif page == "Current Issuers":
