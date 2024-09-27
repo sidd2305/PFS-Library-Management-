@@ -152,53 +152,69 @@ if check_password():
 
     # Issue/Return Book Page
     # Issue/Return Book Page
+   # Issue/Return Book Page
     elif page == "Issue/Return Book":
         st.title("Issue or Return a Book")
     
         # Issue a book
         st.subheader("Issue a Book")
-        
+    
         # Search for a book by Book No
         book_to_issue = st.text_input("Search for a book to issue (by Book No)", "").strip()
-        
+    
         # Search for the book in books_df
         issue_search_results = books_df[books_df['Book No'].str.contains(book_to_issue, case=False, na=False)]
-        
+    
         if not issue_search_results.empty:
             book_to_issue = st.selectbox("Select a book to issue", issue_search_results['Book No'].unique())
             book_name = books_df.loc[books_df['Book No'] == book_to_issue, 'Title of the Book'].values[0]  # Retrieve the book title
-            
-            user = st.text_input("Name of Issuer")
-            issue_date = st.date_input("Issue Date", datetime.date.today())
-            
+    
+            # Input fields for issuing
+            borrower_name = st.text_input("Borrower Name")
+            flat_number = st.text_input("Flat Number")
+            issued_on = st.date_input("Issued On", datetime.date.today())
+    
             if st.button("Issue Book"):
-                new_issue = pd.DataFrame({
-                    'Book No': [book_to_issue],
-                    'Title of the Book': [book_name],  # Include the book title
-                    'Name of Issuer': [user],
-                    'Issued On': [issue_date],
-                    'Due Date': [issue_date + datetime.timedelta(days=14)]
-                })
-                
-                issue_df = pd.concat([issue_df, new_issue], ignore_index=True)
-                issue_df.to_csv('issue.csv', index=False)
-                st.success(f"Book '{book_name}' (No: {book_to_issue}) issued to {user} successfully!")
+                # Capitalize flat number and remove special characters
+                flat_number = re.sub(r'[^A-Za-z0-9]', '', flat_number).upper()
+    
+                # Check if the book is already issued
+                if issue_df[(issue_df['Book No'] == book_to_issue) & (issue_df['Status'] == 'Issued')].empty:
+                    # Add new entry to issue_df
+                    new_issue = pd.DataFrame({
+                        'Book No': [book_to_issue],
+                        'Title of the Book': [book_name],
+                        'Status': ['Issued'],
+                        'Issued On': [issued_on],
+                        'Returned On': [''],
+                        'Borrower Name': [borrower_name],
+                        'Flat Number': [flat_number]
+                    })
+                    issue_df = pd.concat([issue_df, new_issue], ignore_index=True)
+                    issue_df.to_csv('issue.csv', index=False)
+                    st.success(f"Book '{book_name}' (No: {book_to_issue}) issued to {borrower_name} successfully!")
+                else:
+                    st.error("This book is already issued and cannot be issued again.")
         else:
             st.info("No matching books found.")
-        
+    
         # Return a book
         st.subheader("Return a Book")
         book_to_return = st.text_input("Search for a book to return (by Book No)", "").strip()
         return_search_results = issue_df[issue_df['Book No'].str.contains(book_to_return, case=False, na=False)]
-        
+    
         if not return_search_results.empty:
             book_to_return = st.selectbox("Select a book to return", return_search_results['Book No'].unique())
+            book_title = issue_df.loc[issue_df['Book No'] == book_to_return, 'Title of the Book'].values[0]  # Retrieve the book title
+            st.write(f"Title of the Book: {book_title}")  # Display the corresponding book title
             if st.button("Return Book"):
-                issue_df = issue_df[issue_df['Book No'] != book_to_return]
+                issue_df.loc[issue_df['Book No'] == book_to_return, 'Status'] = 'Returned'
+                issue_df.loc[issue_df['Book No'] == book_to_return, 'Returned On'] = datetime.date.today()
                 issue_df.to_csv('issue.csv', index=False)
-                st.success(f"Book '{book_to_return}' returned successfully!")
+                st.success(f"Book '{book_title}' (No: {book_to_return}) returned successfully!")
         else:
             st.info("No matching issued books found.")
+
 
 
     # Current Issuers Page
