@@ -93,7 +93,7 @@ if check_password():
         st.title("Delete a Book")
         book_to_delete = st.text_input("Search for a book to delete (by Book No)", "").strip()
         delete_search_results = books_df[books_df['Book No'].str.contains(book_to_delete, case=False, na=False)]
-        st.write(f"Title of the Book: {issue_df.loc[issue_df['Book No'] == book_to_return, 'Title of the Book'].values[0]}")
+        st.write(f"Title of the Book: {issue_df.loc[issue_df['Book No'] == book_to_delete, 'Title of the Book'].values[0]}")
 
         if not delete_search_results.empty:
             book_to_delete = st.selectbox("Select a book to delete", delete_search_results['Book No'].unique())
