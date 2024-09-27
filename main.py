@@ -89,20 +89,28 @@ if check_password():
                 st.success("Book added successfully!")
 
     # Delete Book Page
+    # Delete Book Page
     elif page == "Delete Book":
         st.title("Delete a Book")
         book_to_delete = st.text_input("Search for a book to delete (by Book No)", "").strip()
+    
+        # Search for the book in books_df
         delete_search_results = books_df[books_df['Book No'].str.contains(book_to_delete, case=False, na=False)]
-        st.write(f"Title of the Book: {issue_df.loc[issue_df['Book No'] == book_to_delete, 'Title of the Book'].values[0]}")
-
+    
+        # Check if there are any matching results
         if not delete_search_results.empty:
+            st.write(f"Title of the Book: {delete_search_results['Title of the Book'].values[0]}")
+            
+            # Proceed with deletion if the user selects the book
             book_to_delete = st.selectbox("Select a book to delete", delete_search_results['Book No'].unique())
+            
             if st.button("Delete Book"):
                 books_df = books_df[books_df['Book No'] != book_to_delete]
                 books_df.to_csv('books.csv', index=False)
                 st.success("Book deleted successfully!")
         else:
             st.info("No matching books found.")
+
 
     # View Books Page
     elif page == "View Books":
