@@ -42,6 +42,15 @@ if check_password():
     st.sidebar.title("Library Management System")
     page = st.sidebar.selectbox("Choose a page", ["Home", "Add Book", "Delete Book", "View Books", "Edit Books", "Issue/Return Book", "Current Issuers", "Defaulters List"])
 
+    # Define categories
+    categories = [
+        "Adult-Fiction",
+        "Adult-Non Fiction",
+        "Philosophy,Self Help, Motivation",
+        "Children`s books",
+        "Non-English books"
+    ]
+
     # Home Page
     if page == "Home":
         st.title("Welcome to the Library Management System")
@@ -58,10 +67,7 @@ if check_password():
             "R-2-1", "R-2-2", "R-2-3", "R-2-4", "R-2-5", "R-2-6", "R-3-1"
         ])
         author = st.text_input("Author")
-        category = st.selectbox("Category", [
-            "Adult-Non Fiction", "Adult-Fiction", "Childrens books",
-            "Philosophy,Self Help, Motivation", "Non-English books"
-        ])
+        category = st.selectbox("Category", categories)
 
         if st.button("Add Book"):
             if books_df['Book No'].str.lower().eq(book_id.lower()).any():
@@ -127,12 +133,8 @@ if check_password():
                     "R-2-1", "R-2-2", "R-2-3", "R-2-4", "R-2-5", "R-2-6", "R-3-1"
                 ].index(book_data['Shelf No']))
                 new_author = st.text_input("Author", book_data['Author'])
-                valid_categories = [
-                    "Adult-Non Fiction", "Adult-Fiction", "Childrens books",
-                    "Philosophy,Self Help, Motivation", "Non-English books"
-                ]
                 current_category = book_data['Category'].strip()
-                new_category = st.selectbox("Category", valid_categories, index=valid_categories.index(current_category))
+                new_category = st.selectbox("Category", categories, index=categories.index(current_category) if current_category in categories else 0)
                 if st.button("Update Book"):
                     books_df.loc[books_df['Book No'] == book_to_edit, 'Title of the Book'] = new_book_name
                     books_df.loc[books_df['Book No'] == book_to_edit, 'Book No'] = new_book_no
@@ -159,33 +161,31 @@ if check_password():
             
             if not issue_search_results.empty:
                 book_to_issue = st.selectbox("Select a book to issue", issue_search_results['Book No'].unique())
+                book_name = books_df.loc[books_df['Book No'] == book_to_issue, 'Title of the Book'].values[0]
                 
                 # Check if the book is already issued
-                if 'Book No' in issue_df.columns and 'Status' in issue_df.columns:
-                    if issue_df[(issue_df['Book No'] == book_to_issue) & (issue_df['Status'] == 'Issued')].empty:
-                        borrower_name = st.text_input("Borrower Name")
-                        flat_number = st.text_input("Flat Number")
-                        issued_on = st.date_input("Issued On", datetime.date.today())
+                if issue_df[(issue_df['Book No'] == book_to_issue) & (issue_df['Status'] == 'Issued')].empty:
+                    borrower_name = st.text_input("Borrower Name")
+                    flat_number = st.text_input("Flat Number")
+                    issued_on = st.date_input("Issued On", datetime.date.today())
 
-                        if st.button("Issue Book"):
-                            # Capitalize flat number and remove special characters
-                            flat_number = re.sub(r'[^A-Za-z0-9]', '', flat_number).upper()
-                            new_issue = pd.DataFrame({
-                                'Book No': [book_to_issue],
-                                'Title of the Book': [books_df.loc[books_df['Book No'] == book_to_issue, 'Title of the Book'].values[0]],
-                                'Status': ['Issued'],
-                                'Issued On': [issued_on],
-                                'Returned On': [''],
-                                'Borrower Name': [borrower_name],
-                                'Flat Number': [flat_number]
-                            })
-                            issue_df = pd.concat([issue_df, new_issue], ignore_index=True)
-                            issue_df.to_csv('issue.csv', index=False)
-                            st.success("Book issued successfully!")
-                    else:
-                        st.error("This book is already issued and cannot be issued again.")
+                    if st.button("Issue Book"):
+                        # Capitalize flat number and remove special characters
+                        flat_number = re.sub(r'[^A-Za-z0-9]', '', flat_number).upper()
+                        new_issue = pd.DataFrame({
+                            'Book No': [book_to_issue],
+                            'Title of the Book': [book_name],
+                            'Status': ['Issued'],
+                            'Issued On': [issued_on],
+                            'Returned On': [''],
+                            'Borrower Name': [borrower_name],
+                            'Flat Number': [flat_number]
+                        })
+                        issue_df = pd.concat([issue_df, new_issue], ignore_index=True)
+                        issue_df.to_csv('issue.csv', index=False)
+                        st.success("Book issued successfully!")
                 else:
-                    st.error("Required columns not found in issue_df.")
+                    st.error("This book is already issued and cannot be issued again.")
             else:
                 st.info("No matching books found.")
         else:
@@ -193,32 +193,26 @@ if check_password():
 
         # Return a book
         st.subheader("Return a Book")
-        if 'Book No' in issue_df.columns and 'Status' in issue_df.columns:
-            book_to_return = st.text_input("Search for a book to return (by Book No)", "").strip()
-            return_search_results = issue_df[(issue_df['Status'] == 'Issued') & (issue_df['Book No'].str.contains(book_to_return, case=False, na=False))]
-            
-            if not return_search_results.empty:
-                book_to_return = st.selectbox("Select a book to return", return_search_results['Book No'].unique())
-                returned_on = st.date_input("Returned On", datetime.date.today())
+        book_to_return = st.text_input("Search for a book to return (by Book No)", "").strip()
+        return_search_results = issue_df[(issue_df['Status'] == 'Issued') & (issue_df['Book No'].str.contains(book_to_return, case=False, na=False))]
+        
+        if not return_search_results.empty:
+            book_to_return = st.selectbox("Select a book to return", return_search_results['Book No'].unique())
+            returned_on = st.date_input("Returned On", datetime.date.today())
 
-                if st.button("Return Book"):
-                    issue_df.loc[issue_df['Book No'] == book_to_return, ['Status', 'Returned On']] = ['Returned', returned_on]
-                    issue_df.to_csv('issue.csv', index=False)
-                    st.success("Book returned successfully!")
-            else:
-                st.info("No matching books found.")
+            if st.button("Return Book"):
+                issue_df.loc[issue_df['Book No'] == book_to_return, ['Status', 'Returned On']] = ['Returned', returned_on]
+                issue_df.to_csv('issue.csv', index=False)
+                st.success("Book returned successfully!")
         else:
-            st.error("Required columns not found in issue_df.")
+            st.info("No matching books found.")
 
     # Current Issuers Page
     elif page == "Current Issuers":
         st.title("Current Issuers")
         
-        if 'Status' in issue_df.columns:
-            current_issuers = issue_df[issue_df['Status'] == 'Issued']
-            st.write(current_issuers)
-        else:
-            st.error("The 'Status' column is not found in issue_df.")
+        current_issuers = issue_df[issue_df['Status'] == 'Issued']
+        st.write(current_issuers)
 
     # Defaulters List Page
     elif page == "Defaulters List":
@@ -226,10 +220,7 @@ if check_password():
         
         defaulter_days = st.number_input("Enter number of days after which a person is a defaulter", min_value=1, value=14)
         
-        if 'Status' in issue_df.columns and 'Issued On' in issue_df.columns:
-            issue_df['Issued On'] = pd.to_datetime(issue_df['Issued On'], errors='coerce')
-            today = pd.to_datetime('today')
-            defaulters = issue_df[(issue_df['Status'] == 'Issued') & ((today - issue_df['Issued On']).dt.days > defaulter_days)]
-            st.write(defaulters)
-        else:
-            st.error("'Status' or 'Issued On' column is not found in issue_df.")
+        issue_df['Issued On'] = pd.to_datetime(issue_df['Issued On'], errors='coerce')
+        today = pd.to_datetime('today')
+        defaulters = issue_df[(issue_df['Status'] == 'Issued') & ((today - issue_df['Issued On']).dt.days > defaulter_days)]
+        st.write(defaulters)
