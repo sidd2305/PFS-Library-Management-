@@ -75,7 +75,7 @@ if check_password():
 
         if st.button("Add Book"):
             if books_df['Book No'].str.lower().eq(book_id.lower()).any():
-                st.error("A book with this Book No already exists. Please use a different Book No.इस पुस्तक संख्या के साथ पहले से ही एक पुस्तक मौजूद है। कृपया एक अलग पुस्तक संख्या का उपयोग करें।")
+                st.error("इस पुस्तक संख्या के साथ पहले से ही एक पुस्तक मौजूद है। कृपया एक अलग पुस्तक संख्या का उपयोग करें।A book with this Book No already exists. Please use a different Book No.")
             else:
                 new_book = pd.DataFrame({
                     'Title of the Book': [book_name], 
@@ -165,7 +165,12 @@ if check_password():
     
         # Search for the book in books_df
         issue_search_results = books_df[books_df['Book No'].str.contains(book_to_issue, case=False, na=False)]
-        st.write(f"Title of the Book: {books_df.loc[books_df['Book No'] == book_to_issue, 'Title of the Book'].values[0]}")
+
+    # Check if there are any matching results
+        if not issue_search_results.empty:
+            st.write(f"Title of the Book: {issue_search_results['Title of the Book'].values[0]}")
+        else:
+            st.info("No matching books found.")
 
     
         if not issue_search_results.empty:
