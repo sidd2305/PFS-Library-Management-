@@ -245,7 +245,8 @@ if check_password():
     elif page == "Defaulters List":
         st.title("List of Defaulters")
         today = datetime.date.today()
-        defaulters = issue_df[pd.to_datetime(issue_df['Issued On']).dt.date < today]
+        defaulters = issue_df[pd.to_datetime(issue_df['Issued On']).dt.date < (today - pd.Timedelta(days=14))]
+
         if not defaulters.empty:
             st.write(defaulters)
         else:
