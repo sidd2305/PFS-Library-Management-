@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import sqlite3
 import datetime
 import re
 
@@ -24,23 +25,70 @@ def check_password():
     else:
         return True
 
+# Initialize SQLite database
+def init_db():
+    conn = sqlite3.connect("library.db")
+    c = conn.cursor()
+    # Create a table for issued books if it doesn't exist
+    c.execute('''CREATE TABLE IF NOT EXISTS issued_books (
+                    book_no TEXT,
+                    title TEXT,
+                    status TEXT,
+                    issued_on DATE,
+                    returned_on DATE,
+                    borrower_name TEXT,
+                    flat_number TEXT
+                 )''')
+    conn.commit()
+    conn.close()
+
+# Fetch all issued books from the database
+def fetch_issued_books():
+    conn = sqlite3.connect("library.db")
+    df = pd.read_sql_query("SELECT * FROM issued_books", conn)
+    conn.close()
+    return df
+
+# Insert a new issue into the database
+def issue_book_to_db(book_no, title, borrower_name, flat_number, issued_on):
+    conn = sqlite3.connect("library.db")
+    c = conn.cursor()
+    c.execute("INSERT INTO issued_books (book_no, title, status, issued_on, borrower_name, flat_number) VALUES (?, ?, ?, ?, ?, ?)",
+              (book_no, title, 'Issued', issued_on, borrower_name, flat_number))
+    conn.commit()
+    conn.close()
+
+# Update the return date for a returned book
+def return_book_in_db(book_no, returned_on):
+    conn = sqlite3.connect("library.db")
+    c = conn.cursor()
+    c.execute("UPDATE issued_books SET status = ?, returned_on = ? WHERE book_no = ? AND status = 'Issued'",
+              ('Returned', returned_on, book_no))
+    conn.commit()
+    conn.close()
+
+# Filter defaulters who have not returned books for more than 14 days
+def fetch_defaulters():
+    conn = sqlite3.connect("library.db")
+    query = '''SELECT * FROM issued_books WHERE status = 'Issued' AND DATE(issued_on) < DATE('now', '-14 days')'''
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
+
 if check_password():
+    init_db()  # Initialize the database
+
     # Load the data with error handling
     try:
         books_df = pd.read_csv('books.csv', encoding='ISO-8859-1')
-        issue_df = pd.read_csv('issue.csv', encoding='ISO-8859-1')
-        
         # Clean column names by stripping any leading/trailing spaces
         books_df.columns = books_df.columns.str.strip()
-        issue_df.columns = issue_df.columns.str.strip()
-
     except FileNotFoundError:
         st.error("CSV files not found. Please check the file paths.")
         st.stop()
 
     # Ensure necessary columns are of string type before using string operations
     books_df['Book No'] = books_df['Book No'].astype(str)
-    issue_df['Book No'] = issue_df['Book No'].astype(str)
     
     # Sidebar Navigation
     st.sidebar.title("Library Management System")
@@ -61,192 +109,63 @@ if check_password():
         st.write("Welcome to the PFS Library Management System, a platform maintained and managed by the residents of Purva Fountain Square. Our library offers a diverse collection of books across all categories, ensuring there's something for everyone. This system is designed to streamline the management and usage of our community library, and all residents are welcome to explore and contribute.")
         st.image("pfs.jpg", caption="Purva Fountain Square Library", use_column_width=True)
 
-    # Add Book Page
-    elif page == "Add Book":
-        st.title("Add a New Book")
-        book_name = st.text_input("Title of the Book")
-        book_id = st.text_input("Book No")
-        shelf_id = st.selectbox("Shelf No", [
-            "R-1-0", "R-1-1", "R-1-2", "R-1-3", "R-1-4", "R-1-5", "R-1-6", "R-1-7", "R-1-8", "R-1-9", "R-1-10",
-            "R-2-1", "R-2-2", "R-2-3", "R-2-4", "R-2-5", "R-2-6", "R-3-1"
-        ])
-        author = st.text_input("Author")
-        category = st.selectbox("Category", categories)
-
-        if st.button("Add Book"):
-            if books_df['Book No'].str.lower().eq(book_id.lower()).any():
-                st.error("इस पुस्तक संख्या के साथ पहले से ही एक पुस्तक मौजूद है। कृपया एक अलग पुस्तक संख्या का उपयोग करें।A book with this Book No already exists. Please use a different Book No.")
-            else:
-                new_book = pd.DataFrame({
-                    'Title of the Book': [book_name], 
-                    'Book No': [book_id], 
-                    'Shelf No': [shelf_id], 
-                    'Author': [author], 
-                    'Category': [category]
-                })
-                books_df = pd.concat([books_df, new_book], ignore_index=True)
-                books_df.to_csv('books.csv', index=False)
-                st.success("Book added successfully!")
-
-    # Delete Book Page
-    # Delete Book Page
-    elif page == "Delete Book":
-        st.title("Delete a Book")
-        book_to_delete = st.text_input("Search for a book to delete (by Book No)", "").strip()
-    
-        # Search for the book in books_df
-        delete_search_results = books_df[books_df['Book No'].str.contains(book_to_delete, case=False, na=False)]
-    
-        # Check if there are any matching results
-        if not delete_search_results.empty:
-            st.write(f"Title of the Book: {delete_search_results['Title of the Book'].values[0]}")
-            
-            # Proceed with deletion if the user selects the book
-            book_to_delete = st.selectbox("Select a book to delete", delete_search_results['Book No'].unique())
-            
-            if st.button("Delete Book"):
-                books_df = books_df[books_df['Book No'] != book_to_delete]
-                books_df.to_csv('books.csv', index=False)
-                st.success("Book deleted successfully!")
-        else:
-            st.info("No matching books found.")
-
-
-    # View Books Page
-    elif page == "View Books":
-        st.title("View Books")
-        search_query = st.text_input("Search for a book by Book No", "").strip()
-        if search_query:
-            search_results = books_df[books_df['Book No'].str.contains(search_query, case=False, na=False)]
-            st.write(search_results)
-        else:
-            st.write(books_df)
-        st.download_button(label="Download Book Database", data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
-
-    # Edit Books Page
-    elif page == "Edit Books":
-        st.title("Edit Books")
-        search_query = st.text_input("Search for a book by Book No", "").strip()
-        if search_query:
-            search_results = books_df[books_df['Book No'].str.contains(search_query, case=False, na=False)]
-            if not search_results.empty:
-                st.write(search_results)
-                book_to_edit = st.selectbox("Select a book to edit", search_results['Book No'].unique())
-                book_data = books_df[books_df['Book No'] == book_to_edit].iloc[0]
-                new_book_name = st.text_input("Title of the Book", book_data['Title of the Book'])
-                new_book_no = st.text_input("Book No", book_data['Book No'])
-                new_shelf_id = st.selectbox("Shelf No", [
-                    "R-1-0", "R-1-1", "R-1-2", "R-1-3", "R-1-4", "R-1-5", "R-1-6", "R-1-7", "R-1-8", "R-1-9", "R-1-10",
-                    "R-2-1", "R-2-2", "R-2-3", "R-2-4", "R-2-5", "R-2-6", "R-3-1"
-                ], index=[
-                    "R-1-0", "R-1-1", "R-1-2", "R-1-3", "R-1-4", "R-1-5", "R-1-6", "R-1-7", "R-1-8", "R-1-9", "R-1-10",
-                    "R-2-1", "R-2-2", "R-2-3", "R-2-4", "R-2-5", "R-2-6", "R-3-1"
-                ].index(book_data['Shelf No']))
-                new_author = st.text_input("Author", book_data['Author'])
-                current_category = book_data['Category'].strip()
-                new_category = st.selectbox("Category", categories, index=categories.index(current_category) if current_category in categories else 0)
-                if st.button("Update Book"):
-                    books_df.loc[books_df['Book No'] == book_to_edit, 'Title of the Book'] = new_book_name
-                    books_df.loc[books_df['Book No'] == book_to_edit, 'Book No'] = new_book_no
-                    books_df.loc[books_df['Book No'] == book_to_edit, 'Shelf No'] = new_shelf_id
-                    books_df.loc[books_df['Book No'] == book_to_edit, 'Author'] = new_author
-                    books_df.loc[books_df['Book No'] == book_to_edit, 'Category'] = new_category
-                    books_df.to_csv('books.csv', index=False)
-                    st.success(f"Book '{new_book_name}' updated successfully!")
-            else:
-                st.info("No matching books found.")
-        else:
-            st.write("Please enter a search query to find a book to edit.")
-        st.download_button(label="Download Book Database", data=books_df.to_csv(index=False), file_name="books.csv", mime='text/csv')
-
     # Issue/Return Book Page
-    # Issue/Return Book Page
-   # Issue/Return Book Page
     elif page == "Issue/Return Book":
         st.title("Issue or Return a Book")
-    
+        
         # Issue a book
         st.subheader("Issue a Book")
-    
+        
         # Search for a book by Book No
         book_to_issue = st.text_input("Search for a book to issue (by Book No)", "").strip()
-    
-        # Search for the book in books_df
         issue_search_results = books_df[books_df['Book No'].str.contains(book_to_issue, case=False, na=False)]
-
-    # Check if there are any matching results
-        if not issue_search_results.empty:
-            st.write(f"Title of the Book: {issue_search_results['Title of the Book'].values[0]}")
-        else:
-            st.info("No matching books found.")
-
-    
+        
         if not issue_search_results.empty:
             book_to_issue = st.selectbox("Select a book to issue", issue_search_results['Book No'].unique())
-            book_name = books_df.loc[books_df['Book No'] == book_to_issue, 'Title of the Book'].values[0]  # Retrieve the book title
-    
-            # Input fields for issuing
+            book_name = books_df.loc[books_df['Book No'] == book_to_issue, 'Title of the Book'].values[0]
             borrower_name = st.text_input("Borrower Name")
             flat_number = st.text_input("Flat Number")
             issued_on = st.date_input("Issued On", datetime.date.today())
-    
+            
             if st.button("Issue Book"):
-                # Capitalize flat number and remove special characters
                 flat_number = re.sub(r'[^A-Za-z0-9]', '', flat_number).upper()
-    
-                # Check if the book is already issued
-                if issue_df[(issue_df['Book No'] == book_to_issue) & (issue_df['Status'] == 'Issued')].empty:
-                    # Add new entry to issue_df
-                    new_issue = pd.DataFrame({
-                        'Book No': [book_to_issue],
-                        'Title of the Book': [book_name],
-                        'Status': ['Issued'],
-                        'Issued On': [issued_on],
-                        'Returned On': [''],
-                        'Borrower Name': [borrower_name],
-                        'Flat Number': [flat_number]
-                    })
-                    issue_df = pd.concat([issue_df, new_issue], ignore_index=True)
-                    issue_df.to_csv('issue.csv', index=False)
+                issue_df = fetch_issued_books()
+                
+                if issue_df[(issue_df['book_no'] == book_to_issue) & (issue_df['status'] == 'Issued')].empty:
+                    issue_book_to_db(book_to_issue, book_name, borrower_name, flat_number, issued_on)
                     st.success(f"Book '{book_name}' (No: {book_to_issue}) issued to {borrower_name} successfully!")
                 else:
-                    st.error("यह पुस्तक पहले ही जारी की जा चुकी है और इसे फिर से जारी नहीं किया जा सकता। This book is already issued and cannot be issued again.")
+                    st.error("This book is already issued and cannot be issued again.")
         else:
             st.info("No matching books found.")
-    
+        
         # Return a book
-       # Return a book
         st.subheader("Return a Book")
         book_to_return = st.text_input("Search for a book to return (by Book No)", "").strip()
-        return_search_results = issue_df[issue_df['Book No'].str.contains(book_to_return, case=False, na=False)]
+        return_search_results = fetch_issued_books()
+        return_search_results = return_search_results[return_search_results['book_no'].str.contains(book_to_return, case=False, na=False)]
         
         if not return_search_results.empty:
-            book_to_return = st.selectbox("Select a book to return", return_search_results['Book No'].unique())
-            book_title = issue_df.loc[issue_df['Book No'] == book_to_return, 'Title of the Book'].values[0]  # Retrieve the book title
-            st.write(f"Title of the Book: {book_title}")  # Display the corresponding book title
+            book_to_return = st.selectbox("Select a book to return", return_search_results['book_no'].unique())
+            book_title = return_search_results.loc[return_search_results['book_no'] == book_to_return, 'title'].values[0]
+            st.write(f"Title of the Book: {book_title}")
             
             if st.button("Return Book"):
-                # Remove the entry from issue_df
-                issue_df = issue_df[issue_df['Book No'] != book_to_return]  # Filter out the returned book
-                issue_df.to_csv('issue.csv', index=False)  # Save the updated issue_df to CSV
+                return_book_in_db(book_to_return, datetime.date.today())
                 st.success(f"Book '{book_title}' (No: {book_to_return}) returned successfully!")
         else:
             st.info("No matching issued books found.")
-        
-
-
+    
     # Current Issuers Page
     elif page == "Current Issuers":
         st.title("List of Currently Issued Books")
-        st.write(issue_df)
-        st.download_button(label="Download Issued Books", data=issue_df.to_csv(index=False), file_name="issued_books.csv", mime='text/csv')
-
+        issue_df = fetch_issued_books()
+        st.write(issue_df[issue_df['status'] == 'Issued'])
+    
     # Defaulters List Page
     elif page == "Defaulters List":
         st.title("List of Defaulters")
-        today = datetime.date.today()
-        defaulters = issue_df[pd.to_datetime(issue_df['Issued On']).dt.date < (today - pd.Timedelta(days=14))]
-
+        defaulters = fetch_defaulters()
         if not defaulters.empty:
             st.write(defaulters)
         else:
