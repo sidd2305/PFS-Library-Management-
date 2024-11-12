@@ -109,22 +109,26 @@ if check_password():
         st.write("Welcome to the PFS Library Management System, a platform maintained and managed by the residents of Purva Fountain Square. Our library offers a diverse collection of books across all categories, ensuring there's something for everyone. This system is designed to streamline the management and usage of our community library, and all residents are welcome to explore and contribute.")
         st.image("pfs.jpg", caption="Purva Fountain Square Library", use_column_width=True)
     # View Books Page
+    # View Books Page
     elif page == "View Books":
         st.title("View All Books")
         st.write("Here are the books available in the library:")
     
-        # Display the books.csv as a table
+        # Display the full books.csv table by default
         st.write(books_df)
     
-        # Option to search books by title or category
-        search_term = st.text_input("Search books by title or category", "").strip().lower()
-        if search_term:
-            search_results = books_df[books_df['Title of the Book'].str.contains(search_term, case=False, na=False) |
-                                      books_df['Category'].str.contains(search_term, case=False, na=False)]
-            st.write("Search Results:")
-            st.write(search_results)
+        # Search for a specific book by Book Number
+        book_number_search = st.text_input("Search by Book Number").strip()
+        if book_number_search:
+            book_search_results = books_df[books_df['Book No'].str.contains(book_number_search, case=False, na=False)]
+            if not book_search_results.empty:
+                st.write("Search Results:")
+                st.write(book_search_results)
+            else:
+                st.info("No book found with that number.")
         else:
-            st.write("Enter a title or category to search.")
+            st.write("Enter a Book Number to search.")
+
     
     # Edit Books Page
     elif page == "Edit Books":
