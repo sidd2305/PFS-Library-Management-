@@ -108,6 +108,51 @@ if check_password():
         st.title("Welcome to the Library Management System")
         st.write("Welcome to the PFS Library Management System, a platform maintained and managed by the residents of Purva Fountain Square. Our library offers a diverse collection of books across all categories, ensuring there's something for everyone. This system is designed to streamline the management and usage of our community library, and all residents are welcome to explore and contribute.")
         st.image("pfs.jpg", caption="Purva Fountain Square Library", use_column_width=True)
+    # View Books Page
+    elif page == "View Books":
+        st.title("View All Books")
+        st.write("Here are the books available in the library:")
+    
+        # Display the books.csv as a table
+        st.write(books_df)
+    
+        # Option to search books by title or category
+        search_term = st.text_input("Search books by title or category", "").strip().lower()
+        if search_term:
+            search_results = books_df[books_df['Title of the Book'].str.contains(search_term, case=False, na=False) |
+                                      books_df['Category'].str.contains(search_term, case=False, na=False)]
+            st.write("Search Results:")
+            st.write(search_results)
+        else:
+            st.write("Enter a title or category to search.")
+    
+    # Edit Books Page
+    elif page == "Edit Books":
+        st.title("Edit Book Information")
+    
+        # Select a book to edit
+        book_to_edit = st.selectbox("Select a book to edit by Book No", books_df['Book No'].unique())
+    
+        if book_to_edit:
+            # Display current details
+            selected_book = books_df[books_df['Book No'] == book_to_edit]
+            if not selected_book.empty:
+                st.write("Current Details:")
+                st.write(selected_book)
+    
+                # Editable fields
+                new_title = st.text_input("New Title", selected_book['Title of the Book'].values[0])
+                new_category = st.selectbox("New Category", categories, index=categories.index(selected_book['Category'].values[0]))
+                new_author = st.text_input("New Author", selected_book['Author'].values[0])
+    
+                if st.button("Save Changes"):
+                    # Update the books dataframe
+                    books_df.loc[books_df['Book No'] == book_to_edit, ['Title of the Book', 'Category', 'Author']] = [new_title, new_category, new_author]
+                    
+                    # Save the updated dataframe to CSV
+                    books_df.to_csv('books.csv', index=False, encoding='ISO-8859-1')
+                    
+                    st.success("Book information updated successfully.")
 
     # Issue/Return Book Page
     elif page == "Issue/Return Book":
