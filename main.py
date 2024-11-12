@@ -110,6 +110,7 @@ if check_password():
         st.image("pfs.jpg", caption="Purva Fountain Square Library", use_column_width=True)
     # View Books Page
     # View Books Page
+    # View Books Page
     elif page == "View Books":
         st.title("View All Books")
         st.write("Here are the books available in the library:")
@@ -117,10 +118,10 @@ if check_password():
         # Display the full books.csv table by default
         st.write(books_df)
     
-        # Search for a specific book by Book Number
+        # Search for a specific book by exact Book Number
         book_number_search = st.text_input("Search by Book Number").strip()
         if book_number_search:
-            book_search_results = books_df[books_df['Book No'].str.contains(book_number_search, case=False, na=False)]
+            book_search_results = books_df[books_df['Book No'] == book_number_search]
             if not book_search_results.empty:
                 st.write("Search Results:")
                 st.write(book_search_results)
@@ -128,18 +129,16 @@ if check_password():
                 st.info("No book found with that number.")
         else:
             st.write("Enter a Book Number to search.")
-
     
-    # Edit Books Page
     # Edit Books Page
     elif page == "Edit Books":
         st.title("Edit Book Information")
         
-        # Search for a specific book by Book Number
+        # Search for a specific book by exact Book Number
         book_number_search = st.text_input("Search Book to Edit by Book Number").strip()
         
         if book_number_search:
-            selected_book = books_df[books_df['Book No'].str.contains(book_number_search, case=False, na=False)]
+            selected_book = books_df[books_df['Book No'] == book_number_search]
             
             if not selected_book.empty:
                 st.write("Current Details:")
