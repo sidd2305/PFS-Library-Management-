@@ -131,32 +131,39 @@ if check_password():
 
     
     # Edit Books Page
+    # Edit Books Page
     elif page == "Edit Books":
         st.title("Edit Book Information")
-    
-        # Select a book to edit
-        book_to_edit = st.selectbox("Select a book to edit by Book No", books_df['Book No'].unique())
-    
-        if book_to_edit:
-            # Display current details
-            selected_book = books_df[books_df['Book No'] == book_to_edit]
+        
+        # Search for a specific book by Book Number
+        book_number_search = st.text_input("Search Book to Edit by Book Number").strip()
+        
+        if book_number_search:
+            selected_book = books_df[books_df['Book No'].str.contains(book_number_search, case=False, na=False)]
+            
             if not selected_book.empty:
                 st.write("Current Details:")
                 st.write(selected_book)
-    
-                # Editable fields
+                
+                # Editable fields with current values as defaults
                 new_title = st.text_input("New Title", selected_book['Title of the Book'].values[0])
                 new_category = st.selectbox("New Category", categories, index=categories.index(selected_book['Category'].values[0]))
                 new_author = st.text_input("New Author", selected_book['Author'].values[0])
     
                 if st.button("Save Changes"):
-                    # Update the books dataframe
-                    books_df.loc[books_df['Book No'] == book_to_edit, ['Title of the Book', 'Category', 'Author']] = [new_title, new_category, new_author]
+                    # Update the books dataframe with new values
+                    books_df.loc[books_df['Book No'] == selected_book['Book No'].values[0], 
+                                 ['Title of the Book', 'Category', 'Author']] = [new_title, new_category, new_author]
                     
                     # Save the updated dataframe to CSV
                     books_df.to_csv('books.csv', index=False, encoding='ISO-8859-1')
                     
                     st.success("Book information updated successfully.")
+            else:
+                st.info("No book found with that number.")
+        else:
+            st.write("Enter a Book Number to search.")
+
 
     # Issue/Return Book Page
     elif page == "Issue/Return Book":
