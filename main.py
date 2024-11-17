@@ -130,58 +130,58 @@ if check_password():
         else:
             st.write("Enter a Book Number to search.")
     elif page == "Add Book":
-    st.title("Add a New Book")
-    
-    # Input fields for the new book
-    book_no = st.text_input("Book Number").strip()
-    title = st.text_input("Title of the Book").strip()
-    author = st.text_input("Author").strip()
-    category = st.selectbox("Category", categories)
-    publisher = st.text_input("Publisher").strip()
-    year_of_publication = st.text_input("Year of Publication").strip()
-    
-    if st.button("Add Book"):
-        # Check for duplicate book number
-        if books_df['Book No'].str.contains(book_no).any():
-            st.error("A book with this Book Number already exists!")
-        else:
-            # Append the new book to the dataframe
-            new_book = {
-                "Book No": book_no,
-                "Title of the Book": title,
-                "Author": author,
-                "Category": category,
-                "Publisher": publisher,
-                "Year of Publication": year_of_publication
-            }
-            books_df = books_df.append(new_book, ignore_index=True)
-            
-            # Save the updated dataframe to the CSV file
-            books_df.to_csv('books.csv', index=False, encoding='ISO-8859-1')
+        st.title("Add a New Book")
+        
+        # Input fields for the new book
+        book_no = st.text_input("Book Number").strip()
+        title = st.text_input("Title of the Book").strip()
+        author = st.text_input("Author").strip()
+        category = st.selectbox("Category", categories)
+        publisher = st.text_input("Publisher").strip()
+        year_of_publication = st.text_input("Year of Publication").strip()
+        
+        if st.button("Add Book"):
+            # Check for duplicate book number
+            if books_df['Book No'].str.contains(book_no).any():
+                st.error("A book with this Book Number already exists!")
+            else:
+                # Append the new book to the dataframe
+                new_book = {
+                    "Book No": book_no,
+                    "Title of the Book": title,
+                    "Author": author,
+                    "Category": category,
+                    "Publisher": publisher,
+                    "Year of Publication": year_of_publication
+                }
+                books_df = books_df.append(new_book, ignore_index=True)
+                
+                # Save the updated dataframe to the CSV file
+                books_df.to_csv('books.csv', index=False, encoding='ISO-8859-1')
             st.success(f"Book '{title}' added successfully!")
     elif page == "Delete Book":
-    st.title("Delete a Book")
-    
-    # Input to search for the book to delete
-    book_no = st.text_input("Enter the Book Number to Delete").strip()
-    selected_book = books_df[books_df['Book No'] == book_no]
-    
-    if not selected_book.empty:
-        st.write("Book Found:")
-        st.write(selected_book)
+        st.title("Delete a Book")
         
-        if st.button("Delete Book"):
-            # Remove the book from the dataframe
-            books_df = books_df[books_df['Book No'] != book_no]
+        # Input to search for the book to delete
+        book_no = st.text_input("Enter the Book Number to Delete").strip()
+        selected_book = books_df[books_df['Book No'] == book_no]
+        
+        if not selected_book.empty:
+            st.write("Book Found:")
+            st.write(selected_book)
             
-            # Save the updated dataframe to the CSV file
-            books_df.to_csv('books.csv', index=False, encoding='ISO-8859-1')
-            st.success(f"Book with Book Number '{book_no}' has been deleted successfully.")
-    else:
-        if book_no:
-            st.info("No book found with that number.")
+            if st.button("Delete Book"):
+                # Remove the book from the dataframe
+                books_df = books_df[books_df['Book No'] != book_no]
+                
+                # Save the updated dataframe to the CSV file
+                books_df.to_csv('books.csv', index=False, encoding='ISO-8859-1')
+                st.success(f"Book with Book Number '{book_no}' has been deleted successfully.")
         else:
-            st.write("Enter a Book Number to search.")
+            if book_no:
+                st.info("No book found with that number.")
+            else:
+                st.write("Enter a Book Number to search.")
 
     # Edit Books Page
     elif page == "Edit Books":
