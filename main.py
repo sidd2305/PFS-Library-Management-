@@ -161,8 +161,7 @@ if check_password():
                 if book_no in books_df["Book No"].values:
                     st.error("A book with this Book No already exists!")
                 else:
-                        new_book = pd.DataFrame({
-                        "Shelf No": [shelf_no],
+                    new_book = pd.DataFrame({"Shelf No": [shelf_no],
                         "Book No": [book_no],
                         "Title of the Book": [title],
                         "Author": [author],
