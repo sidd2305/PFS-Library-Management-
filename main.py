@@ -131,58 +131,72 @@ if check_password():
             st.write("Enter a Book Number to search.")
     elif page == "Add Book":
         st.title("Add a New Book")
-        
-        # Input fields for the new book
-        book_no = st.text_input("Book Number").strip()
-        title = st.text_input("Title of the Book").strip()
-        author = st.text_input("Author").strip()
-        category = st.selectbox("Category", categories)
-        publisher = st.text_input("Publisher").strip()
-        year_of_publication = st.text_input("Year of Publication").strip()
-        
+    
+        # Input fields
+        shelf_no = st.text_input("Shelf No")
+        book_no = st.text_input("Book No")
+        title = st.text_input("Title of the Book")
+        author = st.text_input("Author")
+        category = st.selectbox(
+            "Category",
+            [
+                "Adult-Fiction",
+                "Adult-Non Fiction",
+                "Philosophy,Self Help, Motivation",
+                "Children`s books",
+                "Non-English books",
+            ],
+        )
+    
+        # Add book logic
         if st.button("Add Book"):
-            # Check for duplicate book number
-            if books_df['Book No'].str.contains(book_no).any():
-                st.error("A book with this Book Number already exists!")
+            try:
+                books_df = pd.read_csv("books.csv", encoding="ISO-8859-1")
+            except FileNotFoundError:
+                books_df = pd.DataFrame(
+                    columns=["Shelf No", "Book No", "Title of the Book", "Author", "Category"]
+                )
+    
+            if shelf_no and book_no and title and author:
+                if book_no in books_df["Book No"].values:
+                    st.error("A book with this Book No already exists!")
+                else:
+                    new_book = {
+                        "Shelf No": shelf_no,
+                        "Book No": book_no,
+                        "Title of the Book": title,
+                        "Author": author,
+                        "Category": category,
+                    }
+                    books_df = books_df.append(new_book, ignore_index=True)
+                    books_df.to_csv("books.csv", index=False, encoding="ISO-8859-1")
+                    st.success("Book added successfully!")
             else:
-                # Append the new book to the dataframe
-                new_book = {
-                    "Book No": book_no,
-                    "Title of the Book": title,
-                    "Author": author,
-                    "Category": category,
-                    "Publisher": publisher,
-                    "Year of Publication": year_of_publication
-                }
-                books_df = books_df.append(new_book, ignore_index=True)
-                
-                # Save the updated dataframe to the CSV file
-                books_df.to_csv('books.csv', index=False, encoding='ISO-8859-1')
-            st.success(f"Book '{title}' added successfully!")
+                st.error("All fields are required!")
+
+# Delete Book Page
     elif page == "Delete Book":
         st.title("Delete a Book")
-        
-        # Input to search for the book to delete
-        book_no = st.text_input("Enter the Book Number to Delete").strip()
-        selected_book = books_df[books_df['Book No'] == book_no]
-        
-        if not selected_book.empty:
-            st.write("Book Found:")
-            st.write(selected_book)
-            
-            if st.button("Delete Book"):
-                # Remove the book from the dataframe
-                books_df = books_df[books_df['Book No'] != book_no]
-                
-                # Save the updated dataframe to the CSV file
-                books_df.to_csv('books.csv', index=False, encoding='ISO-8859-1')
-                st.success(f"Book with Book Number '{book_no}' has been deleted successfully.")
-        else:
-            if book_no:
-                st.info("No book found with that number.")
+    
+        # Input field
+        book_no = st.text_input("Enter Book No to Delete").strip()
+    
+        # Delete book logic
+        if st.button("Delete Book"):
+            try:
+                books_df = pd.read_csv("books.csv", encoding="ISO-8859-1")
+            except FileNotFoundError:
+                st.error("No books found in the database!")
+                books_df = pd.DataFrame(
+                    columns=["Shelf No", "Book No", "Title of the Book", "Author", "Category"]
+                )
+    
+            if book_no in books_df["Book No"].values:
+                books_df = books_df[books_df["Book No"] != book_no]
+                books_df.to_csv("books.csv", index=False, encoding="ISO-8859-1")
+                st.success(f"Book with Book No '{book_no}' deleted successfully!")
             else:
-                st.write("Enter a Book Number to search.")
-
+                st.error(f"No book found with Book No '{book_no}'!")
     # Edit Books Page
     elif page == "Edit Books":
         st.title("Edit Book Information")
