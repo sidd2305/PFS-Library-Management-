@@ -161,14 +161,15 @@ if check_password():
                 if book_no in books_df["Book No"].values:
                     st.error("A book with this Book No already exists!")
                 else:
-                    new_book = {
-                        "Shelf No": shelf_no,
-                        "Book No": book_no,
-                        "Title of the Book": title,
-                        "Author": author,
-                        "Category": category,
-                    }
-                    books_df = books_df.append(new_book, ignore_index=True)
+                        new_book = pd.DataFrame({
+                        "Shelf No": [shelf_no],
+                        "Book No": [book_no],
+                        "Title of the Book": [title],
+                        "Author": [author],
+                        "Category": [category]
+                    })
+                    books_df = pd.concat([books_df, new_book], ignore_index=True)
+
                     books_df.to_csv("books.csv", index=False, encoding="ISO-8859-1")
                     st.success("Book added successfully!")
             else:
